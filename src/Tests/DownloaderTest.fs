@@ -1,33 +1,38 @@
 module CrawlerTest.Tests
 
-open Crawler
 open Crawler.Downloader
+open Crawler.Parser
+open Crawler.Types
 open NUnit.Framework
 open System
 
-let documentUri() = new Uri("https://yandex.ru/")
-let imageUri() = new Uri("https://yandex.ru/images/search?from=tabbar&text=messi&pos=9&img_url=https%3A%2F%2Fpbs.twimg.com%2Fmedia%2FDb-XwSLWAAogBYn.jpg&rpt=simage")
+let documentUri() = new Uri("https://docs.microsoft.com/ru-ru/")
+let imageUri() = new Uri("https://docs.microsoft.com/ru-ru/")
 
 [<SetUp>]
 let Setup () =
     ()
 
 [<Test>]
-let Download () =
+let DownloadAndParse () =
     documentUri()
     |> DownloadDocument
     |> function  
-        | DownloadDocument { Uri = uri; Content = content } ->
-            Assert.AreEqual(documentUri(), uri)
+        | DownloadDocumentResult { Uri = rootUri; HtmlContent = content } ->
+            Assert.AreEqual(documentUri(), rootUri)
             Assert.Greater(content.Length, 0)
-        | DownloadImage _ -> Assert.Fail()
-        | FailedDownload _ -> Assert.Fail()
+            let { Links = links; ImageLinks = _ } = ParseDocument rootUri content 
+            Assert.Greater(List.length links, 0)
+            List.iter (fun uri -> Assert.IsTrue(absoluteUriIsInDomain rootUri uri)) links
+
+        | DownloadImageResult _ -> Assert.Fail()
+        | FailedDownloadResult { Uri = uri; Reason = reason } -> Assert.Fail($"{uri} {reason}")
 
     imageUri()
     |> DownloadImage
     |> function
-        | DownloadImage { Uri = uri; Size = size } ->
-            Assert.AreEqual(imageUri(), uri)
+        | DownloadImageResult { Uri = rootUri; Size = size } ->
+            Assert.AreEqual(imageUri(), rootUri)
             Assert.Greater(size, 0)
-        | DownloadDocument _ -> Assert.Fail()
-        | FailedDownload _ -> Assert.Fail()
+        | DownloadDocumentResult _ -> Assert.Fail()
+        | FailedDownloadResult { Uri = uri; Reason = reason } -> Assert.Fail($"{uri} {reason}")
