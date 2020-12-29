@@ -5,11 +5,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Types.fs" />
+	<Compile Include="Types.fs" />
     <Compile Include="ParseActor.fs" />
     <Compile Include="Parser.fs" />
     <Compile Include="DownloadActor.fs" />
     <Compile Include="Downloader.fs" />
+    <Compile Include="Crawler.fs" />
   </ItemGroup>
 
   <ItemGroup>

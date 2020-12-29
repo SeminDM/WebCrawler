@@ -6,7 +6,7 @@ open System.IO
 open System.Net
 
 
-let DownloadDocument (uri: Uri) =
+let downloadDocument (uri: Uri) =
     let req = WebRequest.Create uri
     try
         use resp = req.GetResponse()
@@ -16,7 +16,7 @@ let DownloadDocument (uri: Uri) =
     with
     | e -> FailedDownloadResult { Uri = uri; Reason = e.Message }
 
-let DownloadImage (uri: Uri) : DownloadResult =
+let downloadImage (uri: Uri) : DownloadResult =
     let req = WebRequest.Create uri
     try
         use resp = req.GetResponse()

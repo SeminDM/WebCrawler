@@ -2,18 +2,20 @@
 
 open System
 
-type DownloadDocumentJob = { Uri: Uri }
+type CrawlDocJob = { Uri: Uri }
+type CrawlJobWithImages = { Uri: Uri }
+type CrawlJob = CrawlDocJob | CrawlJobWithImages
 
-type DownloadImageJob = { Uri: Uri }
 
+type CrawlDocResult = { RootUri: Uri; Links: Uri list; ImageLinks: Uri list; Size: int }
+type CrawlImageResult = { ImageUri: Uri; Size: int }
+type CrawlFailedResult = { RootUri: Uri; Reason: string }
+type CrawlResult = CrawlDocResult | CrawlImageResult
 
 type DownloadDocumentResult = { Uri: Uri; HtmlContent: string }
-
 type DownloadImageResult = { Uri: Uri; Size: int64 }
-
 type FailedDownloadResult = { Uri: Uri; Reason: string }
 
-type DownloadJob = DownloadDocumentJob | DownloadImageJob
 
 type DownloadResult =
     | DownloadDocumentResult of DownloadDocumentResult

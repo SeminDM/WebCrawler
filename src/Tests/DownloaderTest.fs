@@ -16,12 +16,12 @@ let Setup () =
 [<Test>]
 let DownloadAndParse () =
     documentUri()
-    |> DownloadDocument
+    |> downloadDocument
     |> function  
         | DownloadDocumentResult { Uri = rootUri; HtmlContent = content } ->
             Assert.AreEqual(documentUri(), rootUri)
             Assert.Greater(content.Length, 0)
-            let { Links = links; ImageLinks = _ } = ParseDocument rootUri content 
+            let { Links = links; ImageLinks = _ } = parseDocument rootUri content 
             Assert.Greater(List.length links, 0)
             List.iter (fun uri -> Assert.IsTrue(absoluteUriIsInDomain rootUri uri)) links
 
@@ -29,7 +29,7 @@ let DownloadAndParse () =
         | FailedDownloadResult { Uri = uri; Reason = reason } -> Assert.Fail($"{uri} {reason}")
 
     imageUri()
-    |> DownloadImage
+    |> downloadImage
     |> function
         | DownloadImageResult { Uri = rootUri; Size = size } ->
             Assert.AreEqual(imageUri(), rootUri)
