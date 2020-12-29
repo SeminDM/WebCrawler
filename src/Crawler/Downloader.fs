@@ -35,24 +35,33 @@ type FailedDownloadResult = {
 
 type DownloadJob = DownloadDocumentJob | DownloadImageJob
 
-type DownloadResult = 
-    | DownloadDocumentResult 
-    | DownloadImageResult
-    | FailedDownloadResult
+type DownloadResult =
+    | DownloadDocument of DownloadDocumentResult
+    | DownloadImage of DownloadImageResult
+    | FailedDownload of FailedDownloadResult
 
 module Downloader =
 
     let DownloadDocument (uri: Uri) =
         let req = WebRequest.Create uri
-        use resp = req.GetResponse()
-        let reader = new StreamReader(resp.GetResponseStream())
-        let content = reader.ReadToEnd()
-        { Uri = uri; Content = content }
+        try
+            use resp = req.GetResponse()
+            let reader = new StreamReader(resp.GetResponseStream())
+            let content = reader.ReadToEnd()
+            DownloadDocument { Uri = uri; Content = content }
+        with
+        | e -> FailedDownload { Uri = uri; Reason = e.Message }
 
-    let DownloadImage (uri: Uri) =
+    let DownloadImage (uri: Uri) : DownloadResult =
         let req = WebRequest.Create uri
-        use resp = req.GetResponse()
-        { Uri = uri; Size = resp.ContentLength }
+        try
+            use resp = req.GetResponse()
+            let stream = resp.GetResponseStream()
+            let ms = new MemoryStream()
+            stream.CopyTo(ms)
+            DownloadImage { Uri = uri; Size = ms.Length }
+        with
+        | e -> FailedDownload { Uri = uri; Reason = e.Message }
 
 module Parser =
     
