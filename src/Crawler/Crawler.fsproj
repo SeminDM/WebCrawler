@@ -5,15 +5,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<Compile Include="Types.fs" />
+	<Compile Include="CrawlerTypes.fs" />
+	<Compile Include="DownloadTypes.fs" />
+	<Compile Include="ParseTypes.fs" />
+	<Compile Include="Parser.fs" />
     <Compile Include="ParseActor.fs" />
-    <Compile Include="Parser.fs" />
-    <Compile Include="DownloadActor.fs" />
     <Compile Include="Downloader.fs" />
+    <Compile Include="DownloadActor.fs" />
     <Compile Include="Crawler.fs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Akka.FSharp" Version="1.4.14" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.29" />
   </ItemGroup>
 

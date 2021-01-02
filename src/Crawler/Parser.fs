@@ -1,6 +1,6 @@
 ﻿module Crawler.Parser
 
-open Types
+open ParseTypes
 open System
 open HtmlAgilityPack
 
