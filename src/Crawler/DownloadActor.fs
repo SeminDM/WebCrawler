@@ -2,31 +2,19 @@
 
 open Crawler.Downloader
 open Crawler.DownloadTypes
-open Crawler.ParseTypes
 open Akka.FSharp
 
-let processJob sender parseActor job =
+let processJob sender job =
     match job with
-    | DownloadDocumentJob { Uri = uri } -> 
-        let r = downloadDocument uri
-        match r with
-        | DownloadDocumentResult { Uri = uri; HtmlContent = html } -> parseActor <! { RootUri = uri; HtmlString = html }
-        | DownloadFailedResult { Uri = uri; Reason = reason } -> sender <! reason
-    | DownloadDocumentWithImagesJob { Uri = uri } -> sender <! downloadImage uri
+    | DownloadDocumentJob { Uri = uri } -> sender <! downloadDocument uri
+    | DownloadImageJob { Uri = uri } -> sender <! downloadImage uri
 
-let processParseResult downloadActor parseActor parseResult =
-    let { Links = links; ImageLinks = imgLinks } = parseResult
+let downloadActor (mailbox: Actor<_>) =
+    let processJob' = processJob (mailbox.Sender())
 
-
-
-let downloadActor parseActor (mailbox: Actor<_>) =
     let rec loop() = actor {
-        let! msg = mailbox.Receive()
-        match msg with
-        | DownloadJob as job -> processJob (mailbox.Sender()) parseActor job
-        | ParseDocumentResult as parseResult -> processParseResult parseResult 
-
+        let! job = mailbox.Receive()
+        processJob' job
         return! loop()
     }
     loop()
-

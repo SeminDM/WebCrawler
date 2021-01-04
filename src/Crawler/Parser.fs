@@ -42,5 +42,5 @@ let searchImageLinks rootUri htmlContent =
     |> Seq.toList
 
 let parseDocument rootUri htmlContent =
-    { Links = searchLinks rootUri htmlContent; ImageLinks = searchImageLinks rootUri htmlContent }
+    { Uri = rootUri; Links = searchLinks rootUri htmlContent; ImageLinks = searchImageLinks rootUri htmlContent }
 

@@ -4,4 +4,4 @@ open System
 
 type ParseDocumentJob = { RootUri: Uri; HtmlString: string }
 
-type ParseDocumentResult = { Links: Uri list; ImageLinks: Uri list }
+type ParseJobResult = { Uri: Uri; Links: Uri list; ImageLinks: Uri list }

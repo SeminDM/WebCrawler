@@ -12,7 +12,7 @@
     <Compile Include="ParseActor.fs" />
     <Compile Include="Downloader.fs" />
     <Compile Include="DownloadActor.fs" />
-    <Compile Include="Crawler.fs" />
+    <Compile Include="CrawlerActor.fs" />
   </ItemGroup>
 
   <ItemGroup>

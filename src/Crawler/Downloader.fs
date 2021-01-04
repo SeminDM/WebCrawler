@@ -12,9 +12,9 @@ let downloadDocument (uri: Uri) =
         use resp = req.GetResponse()
         let reader = new StreamReader(resp.GetResponseStream())
         let html = reader.ReadToEnd()
-        DownloadDocumentResult { Uri = uri; HtmlContent = html }
+        DownloadDocumentJobResult { DocumentUri = uri; HtmlContent = html }
     with
-    | e -> DownloadFailedResult { Uri = uri; Reason = e.Message }
+    | e -> DownloadFailedJobResult { Uri = uri; Reason = e.Message }
 
 let downloadImage (uri: Uri) =
     let req = WebRequest.Create uri
@@ -23,6 +23,6 @@ let downloadImage (uri: Uri) =
         let stream = resp.GetResponseStream()
         let ms = new MemoryStream()
         stream.CopyTo(ms)
-        DownloadImageResult { Uri = uri; Size = ms.Length }
+        DownloadImageJobResult { ImageUri = uri; ImageContent = ms.ToArray() }
     with
-    | e -> DownloadFailedResult { Uri = uri; Reason = e.Message }
+    | e -> DownloadFailedJobResult { Uri = uri; Reason = e.Message }

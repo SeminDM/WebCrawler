@@ -3,17 +3,17 @@
 open System
 
 type DownloadDocumentJob = { Uri: Uri }
-type DownloadDocumentWithImagesJob = { Uri: Uri }
+type DownloadImageJob = { Uri: Uri }
 
 type DownloadJob = 
     | DownloadDocumentJob of DownloadDocumentJob
-    | DownloadDocumentWithImagesJob of DownloadDocumentWithImagesJob
+    | DownloadImageJob of DownloadImageJob
 
-type DownloadDocumentResult = { Uri: Uri; HtmlContent: string }
-type DownloadImageResult = { Uri: Uri; ImageBytes: int[] }
-type FailedDownloadResult = { Uri: Uri; Reason: string }
+type DownloadDocumentJobResult = { DocumentUri: Uri; HtmlContent: string }
+type DownloadImageJobResult = { ImageUri: Uri; ImageContent: byte[] }
+type DownloadFailedJobResult = { Uri: Uri; Reason: string }
 
-type DownloadResult =
-    | DownloadDocumentResult of DownloadDocumentResult
-    | DownloadImageResult of DownloadImageResult
-    | DownloadFailedResult of FailedDownloadResult
+type DownloadJobResult =
+    | DownloadDocumentJobResult of DownloadDocumentJobResult
+    | DownloadImageJobResult of DownloadImageJobResult
+    | DownloadFailedJobResult of DownloadFailedJobResult

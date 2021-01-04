@@ -2,18 +2,13 @@
 
 open System
 
-type CrawlDocJob = { Uri: Uri }
-type CrawlJobWithImages = { Uri: Uri }
+type CrawlDocumentJob = { DocumentUri: Uri }
 
-type CrawlJob = 
-    | CrawlDocJob 
-    | CrawlJobWithImages
-
-type CrawlDocResult = { RootUri: Uri; Links: Uri list; ImageLinks: Uri list; Size: int }
+type CrawlDocResult = { DocumentUri: Uri; Size: int }
 type CrawlImageResult = { ImageUri: Uri; Size: int }
 type CrawlFailedResult = { RootUri: Uri; Reason: string }
 
 type CrawlResult = 
-    | CrawlDocResult
-    | CrawlImageResult
-    | CrawlFailedResult
+    | CrawlDocResult of CrawlDocResult
+    | CrawlImageResult of CrawlImageResult
+    | CrawlFailedResult of CrawlFailedResult
