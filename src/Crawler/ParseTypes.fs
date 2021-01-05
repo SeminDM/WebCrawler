@@ -1,7 +1,8 @@
 ﻿module Crawler.ParseTypes
 
+open Akka.Actor
 open System
 
-type ParseDocumentJob = { RootUri: Uri; HtmlString: string }
+type ParseDocumentJob = { Initiator: IActorRef; RootUri: Uri; HtmlString: string }
 
-type ParseJobResult = { Uri: Uri; Links: Uri list; ImageLinks: Uri list }
+type ParseJobResult = { Initiator: IActorRef; Uri: Uri; Links: Uri list; ImageLinks: Uri list }

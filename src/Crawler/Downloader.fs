@@ -1,28 +1,28 @@
 ﻿module Crawler.Downloader
 
 open DownloadTypes
-open System
 open System.IO
 open System.Net
 
-
-let downloadDocument (uri: Uri) =
+let downloadDocument job =
+    let { DownloadDocumentJob.Initiator = initiator; DownloadDocumentJob.DocumentUri = uri } = job
     let req = WebRequest.Create uri
     try
         use resp = req.GetResponse()
         let reader = new StreamReader(resp.GetResponseStream())
         let html = reader.ReadToEnd()
-        DownloadDocumentJobResult { DocumentUri = uri; HtmlContent = html }
+        DownloadDocumentJobResult { Initiator = initiator; DocumentUri = uri; HtmlContent = html }
     with
-    | e -> DownloadFailedJobResult { Uri = uri; Reason = e.Message }
+    | e -> DownloadFailedJobResult { Initiator = initiator; Uri = uri; Reason = e.Message }
 
-let downloadImage (uri: Uri) =
+let downloadImage job =
+    let { DownloadImageJob.Initiator = initiator; DownloadImageJob.ImageUri = uri } = job
     let req = WebRequest.Create uri
     try
         use resp = req.GetResponse()
         let stream = resp.GetResponseStream()
         let ms = new MemoryStream()
         stream.CopyTo(ms)
-        DownloadImageJobResult { ImageUri = uri; ImageContent = ms.ToArray() }
+        DownloadImageJobResult { Initiator = initiator; ImageUri = uri; ImageContent = ms.ToArray() }
     with
-    | e -> DownloadFailedJobResult { Uri = uri; Reason = e.Message }
+    | e -> DownloadFailedJobResult { Initiator = initiator; Uri = uri; Reason = e.Message }

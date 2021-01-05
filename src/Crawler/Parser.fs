@@ -41,6 +41,7 @@ let searchImageLinks rootUri htmlContent =
     |> Seq.map (toAsboluteUri rootUri)
     |> Seq.toList
 
-let parseDocument rootUri htmlContent =
-    { Uri = rootUri; Links = searchLinks rootUri htmlContent; ImageLinks = searchImageLinks rootUri htmlContent }
+let parseDocument job =
+    let { Initiator = initiator; RootUri = root; HtmlString = html } = job
+    { Initiator = initiator; Uri = root; Links = searchLinks root html; ImageLinks = searchImageLinks root html}
 

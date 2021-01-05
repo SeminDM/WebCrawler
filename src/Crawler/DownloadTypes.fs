@@ -1,17 +1,18 @@
 ﻿module Crawler.DownloadTypes
 
+open Akka.Actor
 open System
 
-type DownloadDocumentJob = { Uri: Uri }
-type DownloadImageJob = { Uri: Uri }
+type DownloadDocumentJob = { Initiator: IActorRef; DocumentUri: Uri }
+type DownloadImageJob = { Initiator: IActorRef; ImageUri: Uri }
 
 type DownloadJob = 
     | DownloadDocumentJob of DownloadDocumentJob
     | DownloadImageJob of DownloadImageJob
 
-type DownloadDocumentJobResult = { DocumentUri: Uri; HtmlContent: string }
-type DownloadImageJobResult = { ImageUri: Uri; ImageContent: byte[] }
-type DownloadFailedJobResult = { Uri: Uri; Reason: string }
+type DownloadDocumentJobResult = { Initiator: IActorRef; DocumentUri: Uri; HtmlContent: string }
+type DownloadImageJobResult = { Initiator: IActorRef; ImageUri: Uri; ImageContent: byte[] }
+type DownloadFailedJobResult = { Initiator: IActorRef; Uri: Uri; Reason: string }
 
 type DownloadJobResult =
     | DownloadDocumentJobResult of DownloadDocumentJobResult

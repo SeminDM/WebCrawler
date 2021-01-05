@@ -4,17 +4,11 @@ open Crawler.Downloader
 open Crawler.DownloadTypes
 open Akka.FSharp
 
-let processJob sender job =
+let processJob (mailbox: Actor<DownloadJob>) job =
+    let sender = mailbox.Sender()
     match job with
-    | DownloadDocumentJob { Uri = uri } -> sender <! downloadDocument uri
-    | DownloadImageJob { Uri = uri } -> sender <! downloadImage uri
+    | DownloadDocumentJob dj -> sender <! downloadDocument dj
+    | DownloadImageJob ij -> sender <! downloadImage ij
 
-let downloadActor (mailbox: Actor<_>) =
-    let processJob' = processJob (mailbox.Sender())
-
-    let rec loop() = actor {
-        let! job = mailbox.Receive()
-        processJob' job
-        return! loop()
-    }
-    loop()
+let downloadActor (mailbox: Actor<DownloadJob>) job = ()
+    //processJob mailbox job

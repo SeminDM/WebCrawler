@@ -1,8 +1,9 @@
 ﻿module Crawler.CrawlerTypes
 
+open Akka.Actor
 open System
 
-type CrawlDocumentJob = { DocumentUri: Uri }
+type CrawlDocumentJob = { Initiator: IActorRef; DocumentUri: Uri }
 
 type CrawlDocResult = { DocumentUri: Uri; Size: int }
 type CrawlImageResult = { ImageUri: Uri; Size: int }
