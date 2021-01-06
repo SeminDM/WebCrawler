@@ -5,11 +5,11 @@ open System
 
 type CrawlDocumentJob = { Initiator: IActorRef; DocumentUri: Uri }
 
-type CrawlDocResult = { DocumentUri: Uri; Size: int }
-type CrawlImageResult = { ImageUri: Uri; Size: int }
-type CrawlFailedResult = { RootUri: Uri; Reason: string }
+type CrawlDocumentResult = { Initiator: IActorRef; DocumentUri: Uri; Size: int }
+type CrawlImageResult = { Initiator: IActorRef; ImageUri: Uri; Size: int }
+type CrawlFailedResult = { Initiator: IActorRef; RootUri: Uri; Reason: string }
 
 type CrawlResult = 
-    | CrawlDocResult of CrawlDocResult
-    | CrawlImageResult of CrawlImageResult
-    | CrawlFailedResult of CrawlFailedResult
+    | DocumentResult of CrawlDocumentResult
+    | ImageResult of CrawlImageResult
+    | FailedResult of CrawlFailedResult

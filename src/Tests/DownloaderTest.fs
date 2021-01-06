@@ -20,21 +20,21 @@ let DownloadAndParse () =
     documentUri()
     |> downloadDocument
     |> function  
-        | DownloadDocumentJobResult { Initiator = initiator; DocumentUri = rootUri; HtmlContent = content } ->
+        | DocumentJobResult { Initiator = initiator; DocumentUri = rootUri; HtmlContent = content } ->
             Assert.AreEqual(documentUri(), rootUri)
             Assert.Greater(content.Length, 0)
             let { Links = links; ImageLinks = _ } = parseDocument { Initiator = initiator; RootUri = rootUri; HtmlString = content }  
-            Assert.Greater(List.length links, 0)
-            List.iter (fun uri -> Assert.IsTrue(absoluteUriIsInDomain rootUri uri)) links
+            Assert.Greater((Option.get >> List.length) links, 0)
+            List.iter (fun uri -> Assert.IsTrue(absoluteUriIsInDomain rootUri uri)) (Option.get links)
 
-        | DownloadImageJobResult _ -> Assert.Fail()
-        | DownloadFailedJobResult { Uri = uri; Reason = reason } -> Assert.Fail($"{uri} {reason}")
+        | ImageJobResult _ -> Assert.Fail()
+        | FailedJobResult { Uri = uri; Reason = reason } -> Assert.Fail($"{uri} {reason}")
 
     imageUri()
     |> downloadImage
     |> function
-        | DownloadImageJobResult { ImageUri = rootUri; ImageContent = img } ->
+        | ImageJobResult { ImageUri = rootUri; ImageContent = img } ->
             Assert.AreEqual(imageUri(), rootUri)
             Assert.Greater(img.Length, 0)
-        | DownloadDocumentJobResult _ -> Assert.Fail()
-        | DownloadFailedJobResult { Uri = uri; Reason = reason } -> Assert.Fail($"{uri} {reason}")
+        | DocumentJobResult _ -> Assert.Fail()
+        | FailedJobResult { Uri = uri; Reason = reason } -> Assert.Fail($"{uri} {reason}")
