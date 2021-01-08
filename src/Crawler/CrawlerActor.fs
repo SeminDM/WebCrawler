@@ -3,32 +3,27 @@
 open Crawler.CrawlerTypes
 open Crawler.DownloadTypes
 open Crawler.ParseTypes
+open Crawler.DownloadCoordinator
 open Crawler.Parser
 open Akka.FSharp
 
-let processCrawlJob downloadActor (crawlJob: CrawlDocumentJob) =
-    downloadActor <! DocumentJob { Initiator = crawlJob.Initiator; DocumentUri = crawlJob.DocumentUri }
+let processCrawlJob (mailbox: Actor<_>) downloadActor parseActor (crawlJob: CrawlDocumentJob) =
+    let coordinator = spawn mailbox.Context "downloadCoordinatorActor" (downloadCoordinatorActor downloadActor parseActor)
+    coordinator <! DownloadJob.DocumentJob { Initiator = crawlJob.Initiator; DocumentUri = crawlJob.DocumentUri }
 
-let processDownloadResult parseActor downloadResult =
+let processDownloadResult downloadResult =
     match downloadResult with
     | DocumentJobResult { Initiator = initiator; DocumentUri = uri; HtmlContent = html } ->
         initiator <! DocumentResult { Initiator = initiator; DocumentUri = uri; Size = String.length html }
-        parseActor <! { Initiator = initiator; RootUri = uri; HtmlString = html }
     
     | ImageJobResult { Initiator = initiator; ImageUri = uri; ImageContent = img } ->
-        initiator <! ImageResult { Initiator = initiator;ImageUri = uri; Size = Array.length img }
+        initiator <! ImageResult { Initiator = initiator; ImageUri = uri; Size = Array.length img }
 
     | FailedJobResult { Initiator = initiator; Uri = uri; Reason = reason } ->
         initiator <! FailedResult { Initiator = initiator; RootUri = uri; Reason = reason }
 
-let processParseResult downloadActor parseResult =
-    let { Initiator = initiator; Uri = _; Links = links; ImageLinks = imgLinks } = parseResult
-    links |> bind (List.iter (fun link -> downloadActor <! DocumentJob { Initiator = initiator; DocumentUri = link })) |> ignore 
-    imgLinks |> bind (List.iter (fun imgLink -> downloadActor <! ImageJob { Initiator = initiator; ImageUri = imgLink })) |> ignore
-
-let crawlerActor downloadActor parseActor msg =
+let crawlerActor downloadActor parseActor (mailbox: Actor<_>) msg =
     match box msg with
-    | :? CrawlDocumentJob as crawlJob -> processCrawlJob downloadActor crawlJob
-    | :? ParseJobResult as parseResult -> processParseResult downloadActor parseResult
-    | :? DownloadJobResult as downloadResult -> processDownloadResult parseActor downloadResult
+    | :? CrawlDocumentJob as crawlJob -> processCrawlJob mailbox downloadActor parseActor crawlJob
+    | :? DownloadJobResult as downloadResult -> processDownloadResult downloadResult
     | _ -> failwith ""

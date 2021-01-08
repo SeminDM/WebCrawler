@@ -12,6 +12,7 @@
     <Compile Include="ParseActor.fs" />
     <Compile Include="Downloader.fs" />
     <Compile Include="DownloadActor.fs" />
+    <Compile Include="DownloadCoordinator.fs" />
     <Compile Include="CrawlerActor.fs" />
   </ItemGroup>
 

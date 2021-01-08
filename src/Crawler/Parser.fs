@@ -33,7 +33,7 @@ let searchLinks rootUri htmlContent =
     |> bind (Seq.filter IsWellFormedUriString)
     |> bind (Seq.map (toAsboluteUri rootUri))
     |> bind (Seq.filter (absoluteUriIsInDomain rootUri))
-    |> bind (Seq.toList)
+    |> bind Seq.toList
 
 let searchImageLinks rootUri htmlContent =
     let doc = new HtmlDocument();
@@ -44,7 +44,7 @@ let searchImageLinks rootUri htmlContent =
     |> bind (Seq.map (fun htmlNode -> htmlNode.Attributes.[htmlSrcAttr].Value))
     |> bind (Seq.filter IsWellFormedUriString)
     |> bind (Seq.map (toAsboluteUri rootUri))
-    |> bind (Seq.toList)
+    |> bind Seq.toList
 
 let parseDocument job =
     let { Initiator = initiator; RootUri = root; HtmlString = html } = job
