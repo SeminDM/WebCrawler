@@ -48,5 +48,5 @@ let searchImageLinks rootUri htmlContent =
 
 let parseDocument job =
     let { Initiator = initiator; RootUri = root; HtmlString = html } = job
-    { Initiator = initiator; Uri = root; Links = searchLinks root html; ImageLinks = searchImageLinks root html}
+    { Initiator = initiator; RootUri = root; Links = searchLinks root html; ImageLinks = searchImageLinks root html}
 

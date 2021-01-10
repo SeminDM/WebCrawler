@@ -2,14 +2,12 @@
 
 open Crawler.CrawlerTypes
 open Crawler.DownloadTypes
-open Crawler.ParseTypes
 open Crawler.DownloadCoordinator
-open Crawler.Parser
 open Akka.FSharp
 
 let processCrawlJob (mailbox: Actor<_>) downloadActor parseActor (crawlJob: CrawlDocumentJob) =
     let coordinator = spawn mailbox.Context "downloadCoordinatorActor" (downloadCoordinatorActor downloadActor parseActor)
-    coordinator <! DownloadJob.DocumentJob { Initiator = crawlJob.Initiator; DocumentUri = crawlJob.DocumentUri }
+    coordinator <! DownloadJob.DocumentJob { Initiator = crawlJob.Initiator; OriginalUri = crawlJob.DocumentUri; DocumentUri = crawlJob.DocumentUri }
 
 let processDownloadResult downloadResult =
     match downloadResult with

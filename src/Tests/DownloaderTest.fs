@@ -8,8 +8,8 @@ open Akka.Actor
 open NUnit.Framework
 open System
 
-let documentUri() = { DownloadDocumentJob.Initiator = ActorRefs.Nobody; DownloadDocumentJob.DocumentUri = new Uri("https://docs.microsoft.com/ru-ru/") }
-let imageUri() = { DownloadImageJob.Initiator = ActorRefs.Nobody; DownloadImageJob.ImageUri = new Uri("https://docs.microsoft.com/ru-ru/") }
+let documentUri() = { DownloadDocumentJob.Initiator = ActorRefs.Nobody; DownloadDocumentJob.OriginalUri = new Uri("https://docs.microsoft.com/ru-ru/"); DownloadDocumentJob.DocumentUri = new Uri("https://docs.microsoft.com/ru-ru/") }
+let imageUri() = { DownloadImageJob.Initiator = ActorRefs.Nobody; DownloadImageJob.OriginalUri = new Uri("https://docs.microsoft.com/ru-ru/"); DownloadImageJob.ImageUri = new Uri("https://docs.microsoft.com/ru-ru/") }
 
 [<SetUp>]
 let Setup () =
