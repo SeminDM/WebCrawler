@@ -2,26 +2,22 @@
 
 open DownloadTypes
 open System.IO
-open System.Net
+open System.Net.Http
 
-let downloadDocument { Initiator = initiator; OriginalUri = original; DocumentUri = uri } =
-    let req = WebRequest.Create uri
-    req.Timeout <- ((int)(System.TimeSpan.FromMinutes(1.0)).TotalMilliseconds)
+let createHttpClient = new HttpClient()
+
+let downloadDocument (httpClient: HttpClient) { Initiator = initiator; OriginalUri = original; DocumentUri = uri } =
     try
-        use resp = req.GetResponse()
-        let reader = new StreamReader(resp.GetResponseStream())
-        let html = reader.ReadToEnd()
-        DocumentJobResult { Initiator = initiator; OriginalUri = original;DocumentUri = uri; HtmlContent = html }
+        let html = httpClient.GetStringAsync uri
+        DocumentJobResult { Initiator = initiator; OriginalUri = original;DocumentUri = uri; HtmlContent = html.Result }
     with
     | e -> FailedJobResult { Initiator = initiator; OriginalUri = original; Uri = uri; Reason = e.Message }
 
-let downloadImage { Initiator = initiator; OriginalUri = original; ImageUri = uri } =
-    let req = WebRequest.Create uri
+let downloadImage (httpClient: HttpClient) { Initiator = initiator; OriginalUri = original; ImageUri = uri } =
     try
-        use resp = req.GetResponse()
-        let stream = resp.GetResponseStream()
+        use resp = (httpClient.GetStreamAsync uri).Result
         let ms = new MemoryStream()
-        stream.CopyTo(ms)
+        resp.CopyTo(ms)
         ImageJobResult { Initiator = initiator; OriginalUri = original; ImageUri = uri; ImageContent = ms.ToArray() }
     with
     | e -> FailedJobResult { Initiator = initiator; OriginalUri = original; Uri = uri; Reason = e.Message }

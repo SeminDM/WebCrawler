@@ -18,7 +18,7 @@ let Setup () =
 [<Test>]
 let DownloadAndParse () =
     documentUri()
-    |> downloadDocument
+    |> downloadDocument createHttpClient
     |> function  
         | DocumentJobResult { Initiator = initiator; DocumentUri = rootUri; HtmlContent = content } ->
             Assert.AreEqual(documentUri(), rootUri)
@@ -31,7 +31,7 @@ let DownloadAndParse () =
         | FailedJobResult { Uri = uri; Reason = reason } -> Assert.Fail($"{uri} {reason}")
 
     imageUri()
-    |> downloadImage
+    |> downloadImage createHttpClient
     |> function
         | ImageJobResult { ImageUri = rootUri; ImageContent = img } ->
             Assert.AreEqual(imageUri(), rootUri)

@@ -9,14 +9,12 @@ open System
     1. Статистика для сайта (кол-во страниц, изображений, байт).
     2. Как понять, что исследование сайта закончилось.
     3. прогресс бар?
-    4. не посещать уже посещенные страницы
-    5. http client для сайта
     6. асинхронный запрос
     7. распараллеливание (очередь акторов загрузки и парсинга)
 *)
 
 
-let getSiteAddress args = if args = null || (Array.length args) = 0 then "https://www.eurosport.ru/" else args.[0]
+let getSiteAddress args = if args = null || (Array.length args) = 0 then "https://docs.microsoft.com/ru-ru/" else args.[0]
 
 let printColorMessage (msg: string) color =
     Console.ForegroundColor <- color
@@ -52,18 +50,18 @@ let printUnknownType obj =
 let main argv =
     let system = System.create "consoleSystem" <| Configuration.load()
 
-    let downloaderRef = spawn system "downloadActor" <| actorOf2 downloadActor
+    let downloaderRef = spawn system "downloadActor" <| downloadActor
     let parserRef = spawn system "parseActor" <| actorOf2 parseActor
     let crawlerRef = spawn system "crawlerActor" <| actorOf2 (crawlerActor downloaderRef parserRef)
 
-    let coordinatorRef = spawn system "coordinatorActor" <| fun mailbox ->
+    let coordinatorRef = spawn system "consoleActor" <| fun mailbox ->
         let runCrawler uri = crawlerRef <! { CrawlDocumentJob.Initiator = mailbox.Self; CrawlDocumentJob.DocumentUri = new Uri(uri) }
         let rec loop() =
             actor {
                 let! msg = mailbox.Receive()
                 match box msg with
-                | :? string as uri -> uri |> runCrawler |> ignore
-                | :? CrawlResult as crawlResult -> crawlResult |> printCrawlResult |> ignore
+                | :? string as uri -> uri |> runCrawler
+                | :? CrawlResult as crawlResult -> crawlResult |> printCrawlResult
                 | obj -> obj |> printUnknownType 
                 return! loop()
             }
