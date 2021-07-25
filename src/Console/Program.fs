@@ -1,7 +1,7 @@
 ﻿open Crawler.Crawler
-open Crawler.DownloadActor
-open Crawler.ParseActor
-open Crawler.CrawlerTypes
+open Crawler.DownloadExecutor
+open Crawler.Parser
+open Crawler.Types
 open Akka.FSharp
 open System
 
@@ -37,9 +37,9 @@ let printErrorResult result =
     printColorMessage msg ConsoleColor.Red
 
 let printCrawlResult = function
-    | DocumentResult d -> printDocResult d
-    | ImageResult i -> printImgResult i
-    | FailedResult e -> printErrorResult e
+    | Document d -> printDocResult d
+    | Image i -> printImgResult i
+    | Error e -> printErrorResult e
 
 let printUnknownType obj =
     let msg = String.Format("Message type {0} is not supported", obj.GetType())
@@ -55,7 +55,7 @@ let main argv =
     let crawlerRef = spawn system "crawlerActor" <| actorOf2 (crawlerActor downloaderRef parserRef)
 
     let coordinatorRef = spawn system "consoleActor" <| fun mailbox ->
-        let runCrawler uri = crawlerRef <! { CrawlDocumentJob.Initiator = mailbox.Self; CrawlDocumentJob.DocumentUri = new Uri(uri) }
+        let runCrawler uri = crawlerRef <! { CrawlJob.Initiator = mailbox.Self; CrawlJob.WebsiteUri = new Uri(uri) }
         let rec loop() =
             actor {
                 let! msg = mailbox.Receive()

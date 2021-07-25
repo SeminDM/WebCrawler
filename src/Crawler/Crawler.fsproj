@@ -5,15 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<Compile Include="CrawlerTypes.fs" />
-	<Compile Include="DownloadTypes.fs" />
-	<Compile Include="ParseTypes.fs" />
+	<Compile Include="Types.fs" />
 	<Compile Include="Parser.fs" />
-    <Compile Include="ParseActor.fs" />
-    <Compile Include="Downloader.fs" />
-    <Compile Include="DownloadActor.fs" />
-    <Compile Include="DownloadCoordinator.fs" />
-    <Compile Include="CrawlerActor.fs" />
+    <Compile Include="DownloadExecutor.fs" />
+    <Compile Include="Crawler.fs" />
   </ItemGroup>
 
   <ItemGroup>

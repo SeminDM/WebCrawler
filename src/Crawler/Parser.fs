@@ -1,8 +1,9 @@
 ﻿module Crawler.Parser
 
-open ParseTypes
-open System
+open Types
+open Akka.FSharp
 open HtmlAgilityPack
+open System
 
     
 let htmlLinkNode = "//a[@href]"
@@ -49,4 +50,6 @@ let searchImageLinks rootUri htmlContent =
 let parseDocument job =
     let { Initiator = initiator; RootUri = root; HtmlString = html } = job
     { Initiator = initiator; RootUri = root; Links = searchLinks root html; ImageLinks = searchImageLinks root html}
+
+let parseActor (mailbox: Actor<_>) job = mailbox.Sender() <! parseDocument job
 
