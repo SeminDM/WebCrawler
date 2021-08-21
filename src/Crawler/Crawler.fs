@@ -19,8 +19,21 @@ let processDownloadResult downloadResult =
     | FailedResult { Initiator = initiator; DownloadUri = uri; Reason = reason } ->
         initiator <! Error { Initiator = initiator; RootUri = uri; Reason = reason }
 
-let crawlerActor downloadActor parseActor (mailbox: Actor<_>) msg =
+let crawlerActor2 downloadActor parseActor (mailbox: Actor<_>) msg =
     match box msg with
     | :? CrawlJob as crawlJob -> processCrawlJob mailbox downloadActor parseActor crawlJob
     | :? DownloadResult as downloadResult -> processDownloadResult downloadResult
     | _ -> failwith ""
+
+let crawlerActor downloadActor parseActor (mailbox: Actor<_>) =
+    let rec loop() =
+        actor {
+            let! msg = mailbox.Receive()
+            match box msg with
+            | :? CrawlJob as crawlJob -> processCrawlJob mailbox downloadActor parseActor crawlJob
+            | :? DownloadResult as downloadResult -> processDownloadResult downloadResult
+            | :? CrawlFinishResult as finishResult -> finishResult.Initiator <! finishResult
+            | _ -> failwith ""
+            return! loop()
+        }
+    loop()

@@ -8,11 +8,13 @@ type CrawlJob = { Initiator: IActorRef; WebsiteUri: Uri }
 type CrawlDocumentResult = { Initiator: IActorRef; DocumentUri: Uri; Size: int }
 type CrawlImageResult = { Initiator: IActorRef; ImageUri: Uri; Size: int }
 type CrawlFailedResult = { Initiator: IActorRef; RootUri: Uri; Reason: string }
+type CrawlFinishResult = { Initiator: IActorRef; Visited: int }
 
 type CrawlResult = 
     | Document of CrawlDocumentResult
     | Image of CrawlImageResult
     | Error of CrawlFailedResult
+    | Finish of CrawlFinishResult
 
 type DownloadDocumentJob = { Initiator: IActorRef; WebsiteUri: Uri; DocumentUri: Uri }
 type DownloadImageJob = { Initiator: IActorRef; WebsiteUri: Uri; ImageUri: Uri }

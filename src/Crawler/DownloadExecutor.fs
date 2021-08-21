@@ -5,14 +5,20 @@ open Akka.FSharp
 open System.IO
 open System.Net.Http
 
+type state = {
+    Processed: string Set;
+    Processing: string Set;
+    ParsingCount: int;
+}
+
 let createHttpClient = new HttpClient()
 
 let downloadDocument (httpClient: HttpClient) { Initiator = initiator; WebsiteUri = original; DocumentUri = uri } =
-    try
-        let html = httpClient.GetStringAsync uri
-        DocumentResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; HtmlContent = html.Result }
-    with
-    | e -> FailedResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; Reason = e.Message }
+        try
+            let html = httpClient.GetStringAsync uri
+            DocumentResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; HtmlContent = html.Result }
+        with
+        | e -> FailedResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; Reason = e.Message }
 
 let downloadImage (httpClient: HttpClient) { Initiator = initiator; WebsiteUri = original; ImageUri = uri } =
     try
@@ -23,46 +29,73 @@ let downloadImage (httpClient: HttpClient) { Initiator = initiator; WebsiteUri =
     with
     | e -> FailedResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; Reason = e.Message }
 
-let runDownload downloadActor downloadJob visitedLinks=
-    let getUri = function DocumentJob dj -> dj.DocumentUri | ImageJob ij -> ij.ImageUri
+let runDownload downloadActor downloadJob (state: state) =
+    let getUri = function DocumentJob dj -> dj.DocumentUri.ToString() | ImageJob ij -> ij.ImageUri.ToString()
     let uri = getUri downloadJob
-    if not (Set.contains (uri.ToString()) visitedLinks)
+    if (Set.contains uri state.Processed || Set.contains uri state.Processing)
     then 
-        downloadActor <! downloadJob
-        Set.add (uri.ToString()) visitedLinks
+        state
     else 
-        visitedLinks
-
-let processParseResult downloadActor visitedLinks parseResult =
+        match downloadJob with
+        | DocumentJob dj -> downloadActor <! downloadJob; { state with Processing = (Set.add uri state.Processing) }
+        | ImageJob ij -> downloadActor <! downloadJob; { state with Processing = (Set.add uri state.Processing) }
+        
+let processParseResult crawler downloadActor parseResult state =
     let { Initiator = initiator; RootUri = rootUri; Links = links; ImageLinks = imgLinks } = parseResult
 
-    let rec runDoc links visited =
+    let rec runDoc links state =
         match links with
         | Some (h::t) ->  
-            visited
+            state 
             |> runDownload downloadActor (DocumentJob { Initiator = initiator; WebsiteUri = rootUri; DocumentUri = h })
             |> runDoc (Some t)
-        | _ -> visited
+        | _ -> state
 
-    let rec runImg links visited =
+    let rec runImg links state =
         match links with
         | Some (h::t) ->  
-            visited
+            state
             |> runDownload downloadActor (ImageJob { Initiator = initiator; WebsiteUri = rootUri; ImageUri = h })
             |> runImg (Some t)
-        | _ -> visited
+        | _ -> state
 
-    visitedLinks
-    |> runDoc links
-    |> runImg imgLinks
+    let state' = { state with ParsingCount = state.ParsingCount - 1 } |> runDoc links |> runImg imgLinks
 
-let processDownloadResult crawler parseActor downloadResult =
-    match downloadResult with
-    | DocumentResult { Initiator = initiator; WebsiteUri = root; HtmlContent = html } ->
+    if state'.ParsingCount = 0 && Set.isEmpty state'.Processing
+    then
+        crawler <! { Initiator = initiator; Visited = Set.count state'.Processed }
+        state'
+    else
+        state'
+
+let processDownloadResult crawler parseActor downloadResult state =
+    
+    let i = match downloadResult with
+    | DocumentResult { Initiator = initiator } -> initiator
+    | ImageResult { Initiator = initiator } -> initiator
+    | FailedResult { Initiator = initiator } -> initiator
+
+
+    let state' = match downloadResult with
+    | DocumentResult { Initiator = initiator; DownloadUri = downloadUri; WebsiteUri = root; HtmlContent = html } ->
         crawler <! downloadResult
         parseActor <! { Initiator = initiator; RootUri = root; HtmlString = html }
-    | ImageResult _ -> crawler <! downloadResult
-    | FailedResult _ -> crawler <! downloadResult
+        { state with Processing = (Set.remove (downloadUri.ToString()) state.Processing); Processed = (Set.add (downloadUri.ToString()) state.Processed); ParsingCount = state.ParsingCount + 1 }
+    
+    | ImageResult { Initiator = initiator; DownloadUri = downloadUri } -> 
+        crawler <! downloadResult
+        { state with Processing = (Set.remove (downloadUri.ToString()) state.Processing); Processed = (Set.add (downloadUri.ToString()) state.Processed) }
+          
+    | FailedResult { Initiator = initiator; DownloadUri = downloadUri } ->
+        crawler <! downloadResult
+        { state with Processing = (Set.remove (downloadUri.ToString()) state.Processing); Processed = (Set.add (downloadUri.ToString()) state.Processed) }
+
+    if state'.ParsingCount = 0 && Set.isEmpty state'.Processing
+    then
+        crawler <! { Initiator = i; Visited = Set.count state'.Processed }
+        state'
+    else
+        state'
   
 let downloadActor (mailbox: Actor<_>) =
     let httpClient = createHttpClient
@@ -78,14 +111,14 @@ let downloadActor (mailbox: Actor<_>) =
 
 let downloadCoordinatorActor downloadActor parseActor (mailbox: Actor<_>) =
     let crawler = mailbox.Context.Parent
-    let rec loop visitedLinks =
+    let rec loop state =
         actor {
             let! msg = mailbox.Receive()
-            let visited' = match box msg with
-            | :? DownloadJob as downloadJob -> runDownload downloadActor  downloadJob visitedLinks
-            | :? DownloadResult as downloadResult -> processDownloadResult crawler parseActor downloadResult; visitedLinks
-            | :? ParseJobResult as parseResult -> processParseResult downloadActor visitedLinks parseResult
+            let state' = match box msg with
+            | :? DownloadJob as downloadJob -> runDownload downloadActor downloadJob state
+            | :? DownloadResult as downloadResult -> processDownloadResult crawler parseActor downloadResult state
+            | :? ParseJobResult as parseResult -> processParseResult crawler downloadActor parseResult state
             | _ -> failwith ""
-            return! loop visited'
+            return! loop state'
         }
-    loop Set.empty
+    loop { Processed = Set.empty; Processing = Set.empty; ParsingCount = 0}

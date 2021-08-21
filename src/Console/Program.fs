@@ -14,7 +14,7 @@ open System
 *)
 
 
-let getSiteAddress args = if args = null || (Array.length args) = 0 then "https://docs.microsoft.com/ru-ru/" else args.[0]
+let getSiteAddress args = if args = null || (Array.length args) = 0 then (*"https://www.mirf.ru/"*) (*"https://www.eurosport.ru/"*)"https://docs.microsoft.com/ru-ru/" else args.[0]
 
 let printColorMessage (msg: string) color =
     Console.ForegroundColor <- color
@@ -52,17 +52,18 @@ let main argv =
 
     let downloaderRef = spawn system "downloadActor" <| downloadActor
     let parserRef = spawn system "parseActor" <| actorOf2 parseActor
-    let crawlerRef = spawn system "crawlerActor" <| actorOf2 (crawlerActor downloaderRef parserRef)
+    let crawlerRef = spawn system "crawlerActor" <| (crawlerActor downloaderRef parserRef)
 
     let coordinatorRef = spawn system "consoleActor" <| fun mailbox ->
         let runCrawler uri = crawlerRef <! { CrawlJob.Initiator = mailbox.Self; CrawlJob.WebsiteUri = new Uri(uri) }
-        let rec loop() =
+        let rec loop () =
             actor {
                 let! msg = mailbox.Receive()
                 match box msg with
-                | :? string as uri -> uri |> runCrawler
-                | :? CrawlResult as crawlResult -> crawlResult |> printCrawlResult
-                | obj -> obj |> printUnknownType 
+                | :? string as uri -> uri |> runCrawler 
+                | :? CrawlResult as crawlResult -> crawlResult |> printCrawlResult 
+                | :? CrawlFinishResult as finishResult -> Console.WriteLine $"end {finishResult.Visited}"
+                | obj -> obj |> printUnknownType
                 return! loop()
             }
         loop()
