@@ -2,7 +2,9 @@
 
 open Crawler.Types
 open Akka.FSharp
+open Microsoft.FSharp.Control.WebExtensions
 open System.IO
+open System.Net
 open System.Net.Http
 
 type state = {
@@ -14,18 +16,22 @@ type state = {
 let createHttpClient = new HttpClient()
 
 let downloadDocument (httpClient: HttpClient) { Initiator = initiator; WebsiteUri = original; DocumentUri = uri } =
-        try
-            let html = httpClient.GetStringAsync uri
-            DocumentResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; HtmlContent = html.Result }
-        with
-        | e -> FailedResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; Reason = e.Message }
+    try
+        async {
+            let! html = Async.AwaitTask <| httpClient.GetStringAsync uri
+            return html
+        } |> Async.RunSynchronously |> fun html -> DocumentResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; HtmlContent = html }
+    with
+    | e -> FailedResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; Reason = e.Message }
 
 let downloadImage (httpClient: HttpClient) { Initiator = initiator; WebsiteUri = original; ImageUri = uri } =
     try
-        use resp = (httpClient.GetStreamAsync uri).Result
-        let ms = new MemoryStream()
-        resp.CopyTo(ms)
-        ImageResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; ImageContent = ms.ToArray() }
+        async {
+            use! stream = Async.AwaitTask <| httpClient.GetStreamAsync uri
+            let ms = new MemoryStream()
+            stream.CopyTo(ms)
+            return ms.ToArray()
+        } |> Async.RunSynchronously |> fun img -> ImageResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; ImageContent = img }
     with
     | e -> FailedResult { Initiator = initiator; WebsiteUri = original; DownloadUri = uri; Reason = e.Message }
 

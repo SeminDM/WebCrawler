@@ -14,7 +14,7 @@ open System
 *)
 
 
-let getSiteAddress args = if args = null || (Array.length args) = 0 then (*"https://www.mirf.ru/"*) (*"https://www.eurosport.ru/"*)"https://docs.microsoft.com/ru-ru/" else args.[0]
+let getSiteAddress args = if args = null || (Array.length args) = 0 then (*"https://www.mirf.ru/"*) "https://www.eurosport.ru/"(*"https://docs.microsoft.com/ru-ru/"*) else args.[0]
 
 let printColorMessage (msg: string) color =
     Console.ForegroundColor <- color
