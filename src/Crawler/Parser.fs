@@ -5,7 +5,6 @@ open Akka.FSharp
 open HtmlAgilityPack
 open System
 
-    
 let htmlLinkNode = "//a[@href]"
 let htmlHrefAttr = "href"
 let htmlImageNode = "//img[@src]"
