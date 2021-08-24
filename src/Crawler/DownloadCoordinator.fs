@@ -1,7 +1,9 @@
 ﻿module Crawler.DownloadExecutor
 
 open Crawler.Types
+open Crawler.Parser
 open Akka.FSharp
+open Akka.Routing
 open System.IO
 open System.Net.Http
 
@@ -115,16 +117,26 @@ let downloadActor (mailbox: Actor<_>) =
         }
     loop()
 
-let downloadCoordinatorActor downloadActor parseActor (mailbox: Actor<_>) =
-    let crawler = mailbox.Context.Parent
+let downloadCoordinatorActor crawler (mailbox: Actor<_>) =
+    
+    let downloadPool = RoundRobinPool 10
+    let downloadActor = spawnOpt mailbox.Context "downloadActor" downloadActor [ SpawnOption.Router downloadPool ]
+
+    let parsePool = RoundRobinPool 10
+    let parseActor = spawnOpt mailbox.Context "parseActor" (actorOf2 parseActor) [ SpawnOption.Router parsePool ]
+
     let rec loop state =
         actor {
             let! msg = mailbox.Receive()
-            let state' = match box msg with
+            let newState = match box msg with
             | :? DownloadJob as downloadJob -> runDownload downloadActor downloadJob state
             | :? DownloadResult as downloadResult -> processDownloadResult crawler parseActor downloadResult state
             | :? ParseJobResult as parseResult -> processParseResult crawler downloadActor parseResult state
             | _ -> failwith "Unsupported message type"
-            return! loop state'
+            return! loop newState
         }
     loop State.Empty
+
+    
+    
+    

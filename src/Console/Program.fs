@@ -1,20 +1,9 @@
 ﻿open Crawler.Crawler
-open Crawler.DownloadExecutor
-open Crawler.Parser
 open Crawler.Types
 open Akka.FSharp
 open System
 
-(*
-    1. Статистика для сайта (кол-во страниц, изображений, байт).
-    2. Как понять, что исследование сайта закончилось.
-    3. прогресс бар?
-    6. асинхронный запрос
-    7. распараллеливание (очередь акторов загрузки и парсинга)
-*)
-
-
-let getSiteAddress args = if args = null || (Array.length args) = 0 then (*"https://www.mirf.ru/"*) (*"https://www.eurosport.ru/"*)"https://docs.microsoft.com/ru-ru/" else args.[0]
+let getSiteAddress args = if args = null || (Array.length args) = 0 then (*"https://www.mirf.ru/"*) "https://www.eurosport.ru/"(*"https://docs.microsoft.com/ru-ru/"*) else args.[0]
 
 let printColorMessage (msg: string) color =
     Console.ForegroundColor <- color
@@ -49,20 +38,25 @@ let printUnknownType obj =
 [<EntryPoint>]
 let main argv =
     let system = System.create "consoleSystem" <| Configuration.load()
+    let crawlerRef = spawn system "crawlerActor" <| crawlerActor
 
-    let downloaderRef = spawn system "downloadActor" <| downloadActor
-    let parserRef = spawn system "parseActor" <| actorOf2 parseActor
-    let crawlerRef = spawn system "crawlerActor" <| (crawlerActor downloaderRef parserRef)
+    let consoleActorRef = spawn system "consoleActor" <| fun mailbox ->
+        
+        let timer = new System.Diagnostics.Stopwatch()
+        let runCrawler uri =
+            Console.WriteLine "Crawling is started"
+            timer.Start()
+            crawlerRef <! { CrawlJob.Initiator = mailbox.Self; CrawlJob.WebsiteUri = new Uri(uri) }
 
-    let coordinatorRef = spawn system "consoleActor" <| fun mailbox ->
-        let runCrawler uri = crawlerRef <! { CrawlJob.Initiator = mailbox.Self; CrawlJob.WebsiteUri = new Uri(uri) }
-        let rec loop () =
+        let rec loop() =
             actor {
                 let! msg = mailbox.Receive()
                 match box msg with
                 | :? string as uri -> uri |> runCrawler 
                 | :? CrawlResult as crawlResult -> crawlResult |> printCrawlResult 
-                | :? CrawlFinishResult as finishResult -> Console.WriteLine $"end {finishResult.Visited}"
+                | :? CrawlFinishResult as finishResult -> 
+                    timer.Stop()
+                    Console.WriteLine $"Crawling is finished:\r\n\tvisited links count: {finishResult.Visited}\r\n\ttime elapsed, sec: {timer.Elapsed.TotalSeconds}"; 
                 | obj -> obj |> printUnknownType
                 return! loop()
             }
@@ -71,7 +65,8 @@ let main argv =
     //"https://www.eurosport.ru/" "https://www.mirf.ru/" "https://docs.microsoft.com/ru-ru/"
     argv
     |> getSiteAddress
-    |> (<!) coordinatorRef 
+    |> (<!) consoleActorRef 
 
     System.Console.ReadKey() |> ignore
+    system.Terminate() |> Async.AwaitTask |> ignore
     0
