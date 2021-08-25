@@ -3,7 +3,7 @@ open Crawler.Types
 open Akka.FSharp
 open System
 
-let getSiteAddress args = if args = null || (Array.length args) = 0 then (*"https://www.mirf.ru/"*) "https://www.eurosport.ru/"(*"https://docs.microsoft.com/ru-ru/"*) else args.[0]
+let getSiteAddress args = if args = null || (Array.length args) = 0 then (*"https://www.mirf.ru/"*) (*"https://www.eurosport.ru/"*)"https://docs.microsoft.com/ru-ru/" else args.[0]
 
 let printColorMessage (msg: string) color =
     Console.ForegroundColor <- color
@@ -37,7 +37,7 @@ let printUnknownType obj =
 
 [<EntryPoint>]
 let main argv =
-    let system = System.create "consoleSystem" <| Configuration.load()
+    let system = create "consoleSystem" <| Configuration.load()
     let crawlerRef = spawn system "crawlerActor" <| crawlerActor
 
     let consoleActorRef = spawn system "consoleActor" <| fun mailbox ->
@@ -67,6 +67,6 @@ let main argv =
     |> getSiteAddress
     |> (<!) consoleActorRef 
 
-    System.Console.ReadKey() |> ignore
+    Console.ReadKey() |> ignore
     system.Terminate() |> Async.AwaitTask |> ignore
     0
