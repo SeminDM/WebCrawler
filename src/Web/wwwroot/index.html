@@ -14,12 +14,11 @@ Html
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.7/signalr.min.js"></script>
 <script type="text/javascript">
     const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/myhub")
+        .withUrl("/crawler")
         .configureLogging(signalR.LogLevel.Information)
         .build();
     
     connection.on("receive", message => {
-        console.log("on");
         console.log(message);
         const li = document.createElement("li");
         li.textContent = message;
@@ -29,7 +28,6 @@ Html
     async function start() {
         try {
             await connection.start();
-            console.log("SignalR Connected!");
         } catch (err) {
             console.log(err);
             setTimeout(start, 5000);

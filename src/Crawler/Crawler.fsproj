@@ -9,6 +9,7 @@
 	<Compile Include="Parser.fs" />
     <Compile Include="DownloadCoordinator.fs" />
     <Compile Include="Crawler.fs" />
+    <Compile Include="Client.fs" />
   </ItemGroup>
 
   <ItemGroup>
