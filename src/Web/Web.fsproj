@@ -7,6 +7,7 @@
     <ItemGroup>
         <Compile Include="CrawlHub.fs" />
         <Compile Include="Startup.fs" />
+        <Compile Include="Controllers\CrawlController.fs" />
         <Compile Include="Program.fs" />
     </ItemGroup>
 

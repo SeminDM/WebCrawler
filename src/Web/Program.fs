@@ -1,5 +1,3 @@
-namespace Web
-
 open System
 open System.Collections.Generic
 open System.IO
@@ -11,7 +9,7 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.AspNetCore.SignalR
 open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Hosting
-open Microsoft.Extensions.Logging
+open Start
 
 module Program =
     let createHostBuilder args =
