@@ -1,13 +1,4 @@
-open System
-open System.Collections.Generic
-open System.IO
-open System.Linq
-open System.Threading.Tasks
-open System.Timers
-open Microsoft.AspNetCore
 open Microsoft.AspNetCore.Hosting
-open Microsoft.AspNetCore.SignalR
-open Microsoft.Extensions.Configuration
 open Microsoft.Extensions.Hosting
 open Start
 

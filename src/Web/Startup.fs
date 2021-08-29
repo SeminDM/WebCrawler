@@ -42,7 +42,6 @@ type Startup() =
 
         app
            .UseRouting()
-           //.UseMvc(fun _ -> ())
            .UseEndpoints(fun endpoints ->
                endpoints.MapControllers() |> ignore
                endpoints.MapHub<CrawlHub>("/crawler") |> ignore)

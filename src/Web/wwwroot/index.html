@@ -7,12 +7,10 @@
 <body>
 WebSpider
 
-
-<form method="post">Enter the web site address:
-    <input type="text" value="https://docs.microsoft.com/ru-ru/" name="website"/>
-    <button type="submit" formaction="api/crawl/run"> Run </button>
+<form onsubmit="return runCrawling()">
+    Enter the web site address: <input type="text" id="website" value="https://docs.microsoft.com/ru-ru/" required/>
+    <input type="submit" value="Run" class="btn btn-primary" />
 </form>
-
 
 <ul id = "messageList">
 </ul>
@@ -21,7 +19,7 @@ WebSpider
 <script type="text/javascript">
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/crawler")
-        .configureLogging(signalR.LogLevel.Information)
+        .configureLogging(signalR.LogLevel.Debug)
         .build();
     
     connection.on("receive", message => {
@@ -36,7 +34,7 @@ WebSpider
             await connection.start();
         } catch (err) {
             console.log(err);
-            setTimeout(start, 5000);
+            setTimeout(start, 1000);
         }
     };
 
@@ -46,6 +44,23 @@ WebSpider
 
     // Start the connection.
     start();
+</script>
+<script>
+    function runCrawling(){
+        // (A) GET FORM DATA
+        var data = new FormData();
+        data.append("website", document.getElementById("website").value);
+
+        // (B) AJAX
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "api/crawl/run");
+        // What to do when server responds
+        xhr.onload = function(){ console.log(this.response); };
+        xhr.send(data);
+
+        // (C) PREVENT HTML FORM SUBMIT
+        return false;
+    }
 </script>
 </body>
 </html>

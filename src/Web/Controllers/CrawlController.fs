@@ -15,6 +15,4 @@ type CrawlController (serviceProvider:IServiceProvider, signalRProvider: SignalR
 
     [<HttpPost>]
     [<Route("run")>]
-    member this.Run([<FromForm>]website: string) =
-        _serviceProvider |> _signalRProvider.Invoke <! website
-        RedirectResult "/"
+    member this.Run([<FromForm>]website: string) = _serviceProvider |> _signalRProvider.Invoke <! website
