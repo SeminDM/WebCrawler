@@ -7,7 +7,7 @@ open Start
 
 [<Route("api/crawl")>]
 [<ApiController>]
-type CrawlController (serviceProvider:IServiceProvider, signalRProvider: SignalRProvider) =
+type CrawlController (serviceProvider:IServiceProvider, signalRProvider: SignalRActorProvider) =
     inherit Controller()
 
     let _signalRProvider = signalRProvider
@@ -15,4 +15,4 @@ type CrawlController (serviceProvider:IServiceProvider, signalRProvider: SignalR
 
     [<HttpPost>]
     [<Route("run")>]
-    member this.Run([<FromForm>]website: string) = _serviceProvider |> _signalRProvider.Invoke <! website
+    member this.Run([<FromForm>]website: string) = _signalRProvider.GetActor <! website
