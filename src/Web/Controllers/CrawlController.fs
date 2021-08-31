@@ -1,14 +1,13 @@
 ﻿namespace Startup.Controllers.CrawlController
 
-open System
+open ActorTypes
 open Akka.FSharp
 open Microsoft.AspNetCore.Mvc
-open Start
-open Web.ActorProviders
+open System
 
 [<Route("api/crawl")>]
 [<ApiController>]
-type CrawlController (serviceProvider:IServiceProvider, signalRProvider: SignalRActorProvider) =
+type CrawlController (serviceProvider:IServiceProvider, signalRProvider: SignalRActorRef) =
     inherit Controller()
 
     let _signalRProvider = signalRProvider
@@ -16,4 +15,6 @@ type CrawlController (serviceProvider:IServiceProvider, signalRProvider: SignalR
 
     [<HttpPost>]
     [<Route("run")>]
-    member this.Run([<FromForm>]website: string) = _signalRProvider.GetActor <! website
+    member this.Run([<FromForm>]website: string) = 
+        let (SignalRActorRef a) =  _signalRProvider
+        a <! website

@@ -1,6 +1,7 @@
 module Start
 
 open CrawlerHub
+open ActorTypes
 open Akka.Actor
 open Akka.FSharp
 open Giraffe
@@ -9,7 +10,6 @@ open Microsoft.AspNetCore.Hosting
 open Microsoft.Extensions.DependencyInjection
 open Microsoft.Extensions.Hosting
 open System
-open Web.ActorProviders
 
 type Startup() =
     let webApp =
@@ -22,8 +22,8 @@ type Startup() =
         services.AddControllers() |> ignore
         services
             .AddSingleton<ActorSystem>(fun _ -> create "webSystem" <| Configuration.load())
-            .AddSingleton<CrawlerActorProvider>()
-            .AddSingleton<SignalRActorProvider>()
+            .AddSingleton<CrawlerActorRef>(createCrawler)
+            .AddSingleton<SignalRActorRef>(createSignalR)
             |> ignore
 
     member _.Configure(app: IApplicationBuilder, env: IWebHostEnvironment, lifetime: IHostApplicationLifetime) =
@@ -38,7 +38,7 @@ type Startup() =
            .UseGiraffe(webApp)
            
         lifetime.ApplicationStarted.Register(fun _ ->
-            app.ApplicationServices.GetService<SignalRActorProvider>().GetActor |> ignore
+            app.ApplicationServices.GetService<SignalRActorRef>() |> ignore
             ) |> ignore
         
         lifetime.ApplicationStopped.Register(fun _ -> app.ApplicationServices.GetService<ActorSystem>().Terminate() |> Async.AwaitTask |> ignore) |> ignore
